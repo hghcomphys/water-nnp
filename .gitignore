@@ -1,0 +1,8 @@
+nnp/
+#input.nn
+.idea
+*.xyz
+*.data
+log.lammps
+*.out
+__*__
