@@ -1,5 +1,8 @@
 nnp/
+lmp/
+nnp-trained/
 #input.nn
+log.cite
 .idea
 *.xyz
 *.data
