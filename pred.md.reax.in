@@ -1,0 +1,52 @@
+# MD Run Graphene&CarbonNanotube
+
+dimension	3
+boundary	p p p
+
+units       real
+atom_style	full
+
+read_data lmp/restart.data
+#replicate 	50 50 1
+
+group Hydrogen 	type 1
+group Oxygen 	type 2 
+group water 	union Hydrogen Oxygen
+ 
+##############################
+
+pair_style      reax/c NULL
+pair_coeff      * * ffield.reax_2018 H O
+fix             qeq all qeq/reax 1 0.0 10.0 1e-6 reax/c
+
+#neighbor 2.0 nsq
+neigh_modify every 1 delay 0 check no
+
+##############################
+
+variable  dens equal (mass(all)/vol*1.66054) # gr/cm3
+
+timestep 		0.5
+thermo          100
+thermo_style    custom step temp etotal pe lx ly ly v_dens
+
+dump           1 all xyz 100 results/dump-reax.xyz
+dump_modify    1 sort id element H O
+
+############################## 
+
+variable T      equal 300
+variable P      equal 1.0
+#velocity   		all create 300 98445 dist gaussian mom yes rot yes
+
+# ---
+
+fix        		rlx all npt temp $T $T 100 iso $P $P 1000
+run 			10000
+unfix			rlx
+
+# ---
+
+#write_data      lmp/restart.data
+
+

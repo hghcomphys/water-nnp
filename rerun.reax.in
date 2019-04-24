@@ -1,0 +1,62 @@
+# MD Water (ReaxFF)
+
+dimension	3
+boundary	p p p
+
+units       real
+atom_style	full
+
+read_data lmp/restart.data
+#replicate 	50 50 1
+
+group Hydrogen 	type 1
+group Oxygen 	type 2 
+group water 	union Hydrogen Oxygen
+ 
+##############################
+
+pair_style      reax/c NULL
+pair_coeff      * * ffield.reax_2018 H O
+fix             qeq all qeq/reax 1 0.0 10.0 1e-6 reax/c
+
+#neighbor 2.0 nsq
+#neigh_modify every 1 delay 0 check no
+
+##############################
+
+variable  dens equal (mass(all)/vol*1.66054) # gr/cm3
+
+timestep 		0.5
+thermo          100
+thermo_style    custom step temp etotal pe lx ly ly v_dens
+
+dump           1 all xyz 1000 lmp/dump.xyz
+dump_modify    1 sort id element H O
+
+############################## 
+
+compute         e0 all pe/atom
+
+# ---
+
+variable a loop 100
+label loop
+
+variable f equal 10*$a
+
+dump            dataset all custom 1 lmp/reax.data id x y z type q c_e0 fx fy fz
+dump_modify     dataset sort id append yes
+#reset_timestep  0
+
+read_dump lmp/nnp.data $f x y z q box yes replace yes #type q c_e0 fx fy fz  # dump file must include atom id
+
+
+run 0  # rerun command does not read atom charge!
+undump dataset
+
+next a
+jump rerun.reax.in loop
+
+
+
+
