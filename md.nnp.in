@@ -7,7 +7,7 @@
 ###############################################################################
 clear
 # Configuration files
-variable cfgFile         string "lmp/h2o_74.lmp" # h2o_8640_liquid_NpT_RPBE-D3
+variable cfgFile         string "lmp/restart.data" 
 # Timesteps
 variable numSteps        equal  1000
 variable dt              equal  0.0005
@@ -21,7 +21,7 @@ variable mass_O          equal  15.9994
 ###############################################################################
 # GENERAL SETUP
 ###############################################################################
-units metal
+units real   # NOT METAL!!!
 boundary p p p
 atom_style full
 read_data ${cfgFile}
@@ -33,13 +33,13 @@ thermo 10
 ###############################################################################
 # NN
 ###############################################################################
-pair_style nnp dir ${nnpDir} showew no showewsum 0 resetew yes maxew 100 cflength 1.8897261328 cfenergy 0.0367493254
+pair_style nnp dir ${nnpDir} showew no showewsum 0 resetew yes maxew 100 cflength 1.8897261328 cfenergy 0.0015936 # kcal/mol -> Hartree !!!
 pair_coeff * * ${nnpCutoff}
 
 ###############################################################################
 # SETTING
 ###############################################################################		
-dump            1 all xyz 100 dump.xyz
+dump            1 all xyz 1 dump.xyz
 dump_modify     1 sort id element H O
 
 variable  dens equal (mass(all)/vol*1.66054) # gr/cm3
@@ -48,19 +48,23 @@ thermo_style    custom step temp pe ke etotal press v_dens
 ###############################################################################
 # SIMULATION
 ###############################################################################
-velocity   	all create 300 98445 dist gaussian mom yes rot yes
 
-fix        		rlx all nve # temp 300 300 0.1 #iso 1 1 1.0 
-fix 			termo all temp/berendsen 300.0 300.0 0.01	
-run 			200
-unfix			rlx
-unfix			termo
-	
-fix        		rlx all nvt temp 300 300 0.1 #iso 1 1 0.01
-run 			200
-unfix			rlx
+variable T      equal 300
+variable P      equal 1.0
+#velocity   	all create 300 98445 dist gaussian mom yes rot yes
 
-fix        		rlx all npt temp 300 300 0.1 iso 1 1 1.0
-run 			50000
+# ---
 
-#run 			${numSteps}
+compute         e0 all pe/atom
+dump            dataset all custom 10 lmp/nnp.data id x y z type q c_e0 fx fy fz
+dump_modify     dataset sort id append yes
+reset_timestep  0
+
+# ---
+
+fix        		rlx all npt temp $T $T 0.1 iso $P $P 1.0
+run 			${numSteps}
+
+# ---
+
+#write_data      lmp/restart.data

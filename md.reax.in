@@ -8,7 +8,6 @@ atom_style	full
 
 read_data lmp/h2o_74.lmp
 #replicate 	50 50 1
-#read_restart res.532
 
 group Hydrogen 	type 1
 group Oxygen 	type 2 
@@ -21,7 +20,7 @@ pair_coeff      * * ffield.reax_2018 H O
 fix             qeq all qeq/reax 1 0.0 10.0 1e-6 reax/c
 
 #neighbor 2.0 nsq
-neigh_modify every 1 delay 0 check no
+#neigh_modify every 1 delay 0 check no
 
 ##############################
 
@@ -53,21 +52,21 @@ velocity   		all create 300 98445 dist gaussian mom yes rot yes
 
 # ---
 
-fix        		rlx all npt temp 300 300 100 iso 1 1 1000
+fix        		rlx all npt temp $T $T 0.1 iso $P $P 1.0
 run 			1000
 unfix			rlx
 
 # ---
 
 compute         e0 all pe/atom
-dump            dataset all custom 100 lmp/reax.data id x y z type q c_e0 fx fy fz
+dump            dataset all custom 50 lmp/reax.data id x y z type q c_e0 fx fy fz
 dump_modify     dataset sort id append yes
 reset_timestep  0
 
 # ---
 
-fix        		rlx all npt temp 1 $T 100 iso 0.1 $P 1000
-run 			10000
+fix        		rlx all npt temp $T $T 0.1 iso $P $P 1.0
+run 			5000
 unfix			rlx
 
 # ---
