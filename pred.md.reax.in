@@ -27,11 +27,12 @@ neigh_modify every 1 delay 0 check no
 variable  dens equal (mass(all)/vol*1.66054) # gr/cm3
 
 timestep 		0.5
-thermo          100
+thermo          10
 thermo_style    custom step temp etotal pe lx ly ly v_dens
 
-dump           1 all xyz 100 results/dump-reax.xyz
-dump_modify    1 sort id element H O
+dump            1 all atom 100 results/dump-reax.lammpstrj
+#dump           1 all xyz 100 results/dump-reax.xyz
+#dump_modify    1 sort id element H O
 
 ############################## 
 
@@ -41,8 +42,15 @@ variable P      equal 1.0
 
 # ---
 
-fix        		rlx all npt temp $T $T 100 iso $P $P 1000
+fix        		rlx all nvt temp $T $T 100 #iso $P $P 1000
 run 			10000
+unfix           rlx
+
+
+# ---
+
+fix        		rlx all npt temp $T $T 100 iso $P $P 1000
+#run 			10000
 unfix			rlx
 
 # ---

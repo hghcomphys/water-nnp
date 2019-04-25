@@ -3,7 +3,7 @@
 
 ANGSTROM_TO_BOHR = 1.8897261328
 EV_TO_HARTREE = 0.0367493254
-KCALMOL_TO_HARTREE = 0.0015936
+KCALMOL_TO_HARTREE = 0.001593602
 
 class AtomicData:
     """A class that holds atomic data such as positions, forces, total_energy, charges, etc."""

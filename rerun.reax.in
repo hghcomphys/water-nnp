@@ -42,7 +42,7 @@ compute         e0 all pe/atom
 variable a loop 100
 label loop
 
-variable f equal 10*$a
+variable f equal 1*$a  # specify timestep for the snapshot
 
 dump            dataset all custom 1 lmp/reax.data id x y z type q c_e0 fx fy fz
 dump_modify     dataset sort id append yes
