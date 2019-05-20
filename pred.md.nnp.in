@@ -53,13 +53,16 @@ thermo_style    custom step temp pe ke etotal press v_dens
 
 variable T      equal 300
 variable P      equal 1.0
-#velocity   	all create 300 98445 dist gaussian mom yes rot yes
+velocity   	all create 1 98445 dist gaussian mom yes rot yes
 
 # ---
 
-fix        		rlx all nvt temp $T $T 100 #iso $P $P 1000
+#fix        	rlx all nvt temp $T $T 10 #iso $P $P 1000
+fix             rlx all nve
+fix             1 all temp/rescale 1 1.0 1.5 0.05 1.0
 run 			10000
 unfix           rlx
+unfix           1
 
 # ---
 
