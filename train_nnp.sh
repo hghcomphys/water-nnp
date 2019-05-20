@@ -7,22 +7,22 @@ echo
 echo "Water-NNP"
 echo "============================="
 
-#if [-z "$1"]
-#  then
-echo "Generating initial dataset..."
-rm -f lmp/*.out lmp/*.data
-lmp_serial < md.${REF}.in #> lmp/md.${REF}.out
-cp lmp/${REF}.data lmp/${REF}0.data
-cp lmp/restart.data lmp/restart0.data
-python lammps_to_runner.py lmp/${REF}.data lmp/input.data
+if [ $1 -gt 0 ]
+  then
+    echo "Generating initial dataset..."
+    rm -f lmp/*.out lmp/*.data
+    lmp_serial < md.${REF}.in #> lmp/md.${REF}.out
+    cp lmp/${REF}.data lmp/${REF}0.data
+    cp lmp/restart.data lmp/restart0.data
+    python lammps_to_runner.py lmp/${REF}.data lmp/input.data
 
-echo "RuNNer..."
-cd nnp
-rm -f *.out *.data
-mv ../lmp/input.data .
-sh runscript.sh #> runscript.out
-cd ..
-#fi
+    echo "RuNNer..."
+    cd nnp
+    #rm -f *.out *.data
+    mv ../lmp/input.data .
+    sh runscript.sh #> runscript.out
+    cd ..
+fi
 
 for i in $(seq 1 1 1)
 do
@@ -39,7 +39,7 @@ do
 
 	echo "RuNNer..."
 	cd nnp
-	rm -f *.out *.data
+	#rm -f *.out *.data
 	mv ../lmp/input.data .
 	sh runscript.sh #> runscript.out
 	cd ..
