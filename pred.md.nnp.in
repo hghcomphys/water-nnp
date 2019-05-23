@@ -10,9 +10,9 @@ clear
 variable cfgFile         string "lmp/restart.data" 
 # Timesteps
 variable numSteps        equal  10000
-variable dt              equal  0.5
+variable dt              equal  0.1
 # NN
-variable nnpCutoff       equal  6.36
+variable nnpCutoff       equal  8.5 #6.36
 variable nnpDir          string "nnp"
 # Masses
 variable mass_H          equal  1.00794
@@ -39,9 +39,9 @@ pair_coeff * * ${nnpCutoff}
 ###############################################################################
 # SETTING
 ###############################################################################
-dump            1 all atom 100 results/dump-nnp.lammpstrj
-#dump           1 all xyz 100 results/dump-nnp.xyz
-#dump_modify    1 sort id element H O
+dump           1 all atom 100 results/dump-nnp.lammpstrj
+dump           xyz all xyz 100 results/dump.xyz
+dump_modify    xyz sort id element H O
 
 
 variable  dens equal (mass(all)/vol*1.66054) # gr/cm3
@@ -57,12 +57,12 @@ velocity   	all create 1 98445 dist gaussian mom yes rot yes
 
 # ---
 
-#fix        	rlx all nvt temp $T $T 10 #iso $P $P 1000
-fix             rlx all nve
-fix             1 all temp/rescale 1 1.0 1.5 0.05 1.0
+fix        	rlx all nvt temp $T $T 10 #iso $P $P 1000
+#fix             rlx all nve
+#fix             1 all temp/rescale 1 1.0 1.5 0.05 1.0
 run 			10000
 unfix           rlx
-unfix           1
+#unfix           1
 
 # ---
 

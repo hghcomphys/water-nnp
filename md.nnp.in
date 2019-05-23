@@ -7,12 +7,12 @@
 ###############################################################################
 clear
 # Configuration files
-variable cfgFile         string "lmp/restart.data" 
+variable cfgFile         string "lmp/restart0.data"
 # Timesteps
 variable numSteps        equal  100
-variable dt              equal  0.5
+variable dt              equal  0.1
 # NN
-variable nnpCutoff       equal  6.36
+variable nnpCutoff       equal  8.5 #6.36
 variable nnpDir          string "nnp"
 # Masses
 variable mass_H          equal  1.00794

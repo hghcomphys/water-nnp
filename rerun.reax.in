@@ -42,15 +42,15 @@ compute         e0 all pe/atom
 variable a loop 100
 label loop
 
+# read atomic position and charge from input dump file
 variable f equal 1*$a  # specify timestep for the snapshot
+read_dump lmp/nnp.data $f x y z q box yes replace yes #type q c_e0 fx fy fz  # dump file must include atom id
 
 dump            dataset all custom 1 lmp/reax.data id x y z type q c_e0 fx fy fz
 dump_modify     dataset sort id append yes
 #reset_timestep  0
 
-read_dump lmp/nnp.data $f x y z q box yes replace yes #type q c_e0 fx fy fz  # dump file must include atom id
-
-
+# recalculate force, energy
 run 0  # rerun command does not read atom charge!
 undump dataset
 
