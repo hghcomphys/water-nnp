@@ -7,7 +7,7 @@
 ###############################################################################
 clear
 # Configuration files
-variable cfgFile         string "lmp/restart.data" 
+variable cfgFile         string "lmp/restart.data"
 # Timesteps
 variable numSteps        equal  10000
 variable dt              equal  0.5
@@ -25,6 +25,7 @@ units real   # NOT METAL!!!
 boundary p p p
 atom_style full
 read_data ${cfgFile}
+replicate 2 2 2
 mass 1 ${mass_H}
 mass 2 ${mass_O}
 timestep ${dt}

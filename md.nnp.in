@@ -9,8 +9,8 @@ clear
 # Configuration files
 variable cfgFile         string "lmp/restart0.data"
 # Timesteps
-variable numSteps        equal  100
-variable dt              equal  0.1
+variable numSteps        equal  500
+variable dt              equal  0.5
 # NN
 variable nnpCutoff       equal  8.5 #6.36
 variable nnpDir          string "nnp"

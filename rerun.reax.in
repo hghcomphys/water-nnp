@@ -39,7 +39,7 @@ compute         e0 all pe/atom
 
 # ---
 
-variable a loop 100
+variable a loop 500
 label loop
 
 # read atomic position and charge from input dump file
