@@ -24,7 +24,7 @@ if [ $1 -gt 0 ]
     cd ..
 fi
 
-for i in $(seq 1 1 3)
+for i in $(seq 1 1 0)
 do
     echo "-----------------------------"
 	echo "Extending dataset... ($i)"
