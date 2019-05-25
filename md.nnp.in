@@ -7,7 +7,7 @@
 ###############################################################################
 clear
 # Configuration files
-variable cfgFile         string "lmp/restart0.data"
+variable cfgFile         string "lmp/restart.data"
 # Timesteps
 variable numSteps        equal  500
 variable dt              equal  0.5

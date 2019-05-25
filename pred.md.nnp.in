@@ -13,7 +13,7 @@ variable numSteps        equal  10000
 variable dt              equal  0.5
 # NN
 variable nnpCutoff       equal  8.5 #6.36
-variable nnpDir          string "nnp"
+variable nnpDir          string "nnp-trained"
 # Masses
 variable mass_H          equal  1.00794
 variable mass_O          equal  15.9994
@@ -54,7 +54,7 @@ thermo_style    custom step temp pe ke etotal press v_dens
 
 variable T      equal 300
 variable P      equal 1.0
-velocity   	all create 1 98445 dist gaussian mom yes rot yes
+#velocity   	all create 1 98445 dist gaussian mom yes rot yes
 
 # ---
 
