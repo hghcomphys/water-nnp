@@ -9,10 +9,10 @@ clear
 # Configuration files
 variable cfgFile         string "lmp/restart.data"
 # Timesteps
-variable numSteps        equal  500
+variable numSteps        equal  200
 variable dt              equal  0.5
 # NN
-variable nnpCutoff       equal  8.5 #6.36
+variable nnpCutoff       equal  6.36
 variable nnpDir          string "nnp"
 # Masses
 variable mass_H          equal  1.00794
@@ -24,7 +24,8 @@ variable mass_O          equal  15.9994
 units real   # NOT METAL!!!
 boundary p p p
 atom_style full
-read_data ${cfgFile}
+#read_data ${cfgFile}
+read_restart ${cfgFile}
 mass 1 ${mass_H}
 mass 2 ${mass_O}
 timestep ${dt}
@@ -38,8 +39,8 @@ pair_coeff * * ${nnpCutoff}
 
 ###############################################################################
 # SETTING
-###############################################################################		
-dump            1 all xyz 1 dump.xyz
+###############################################################################
+dump            1 all xyz 1 lmp/dump.xyz
 dump_modify     1 sort id element H O
 
 variable  dens equal (mass(all)/vol*1.66054) # gr/cm3
@@ -51,12 +52,16 @@ thermo_style    custom step temp pe ke etotal press v_dens
 
 variable T      equal 300
 variable P      equal 1.0
-#velocity   	all create 300 98445 dist gaussian mom yes rot yes
+
+variable        s file lmp/rnd.txt
+velocity   	    all create $T $s dist gaussian mom yes rot yes
+print           "Seed for initial velocities is $s"
+next            s
 
 # ---
 
 compute         e0 all pe/atom
-dump            dataset all custom 1 lmp/nnp.data id x y z type q c_e0 fx fy fz
+dump            dataset all custom 10 lmp/nnp.data id x y z type q c_e0 fx fy fz
 dump_modify     dataset sort id append yes
 reset_timestep  0
 
@@ -67,4 +72,4 @@ run 			${numSteps}
 
 # ---
 
-write_data      lmp/restart.data
+#write_data      lmp/restart.nnp.data
