@@ -2,12 +2,21 @@
 
 REF="reax"
 
-echo "Running MD using NNP..."
-rm -f lmp/nnp.data
-lmp_serial < md.nnp.in #> lmp/md.nnp.$i.out
+for j in $(seq 1 1 2)
+do
+  for n in $(seq 1 1 5)
+  do
+      cp lmp/restart.${n}000.data lmp/restart.data
+      python rndgen.py
 
-echo "Rerunning using ${REF}..."
-lmp_serial < rerun.${REF}.in #> lmp/rerun.${REF}.$i.out
+      echo "Run MD using NNP..."
+      rm -f lmp/nnp.data
+      lmp_serial < md.nnp.in #> lmp/md.nnp.$i.out
 
-echo "Converting LAMMPS to RuNNer file format..."
+      echo "Rerun using ${REF}..."
+      lmp_serial < rerun.${REF}.in #> lmp/rerun.${REF}.$i.out
+  done
+done
+
+echo "Convert LAMMPS to RuNNer file format..."
 python lammps_to_runner.py lmp/${REF}.data lmp/input.data

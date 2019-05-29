@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
 
+DIR="nnp"
+
 echo "RuNNer..."
-cd nnp
-#rm -f *.out *.data
-mv ../lmp/input.data .
+cd ${DIR}
+rm -f *.out *.data
+cp ../lmp/input.data .
 sh runscript.sh #> runscript.out
 cd ..
