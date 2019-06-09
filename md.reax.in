@@ -6,7 +6,8 @@ boundary	p p p
 units       real
 atom_style	full
 
-read_data lmp/h2o_28_rlx.lmp
+#read_restart lmp/restart.lmp
+read_data lmp/h2o_74.lmp
 #replicate 	50 50 1
 
 group Hydrogen 	type 1
@@ -49,7 +50,7 @@ velocity   		all create 300 98445 dist gaussian mom yes rot yes
 # ---
 
 fix        		rlx all npt temp $T $T 100 iso $P $P 1000
-#run 			2000
+run 			6000
 unfix			rlx
 #write_data      lmp/h2o_28_rlx.lmp
 
@@ -67,7 +68,7 @@ restart   1000 lmp/restart.*.data
 # ---
 
 fix       rlx all nvt temp $T $T 100
-run 			5000
+run 			10000
 unfix			rlx
 
 # ---
@@ -77,13 +78,13 @@ restart   0
 # ================= NPT
 
 fix       rlx all npt temp $T $T 100 iso $P $P 1000
-run 			2000
+#run 			10000
 unfix			rlx
 
 # ================== Out range ensemble
 
-fix       rlx all npt temp 100 500 100 iso 0.1 10000 1000 # 1GPa
-run 			3000
+fix       rlx all npt temp 100 500 100 iso 0.1 1000 1000 # 0.1GPa
+#run 			10000
 unfix			rlx
 
 # ---

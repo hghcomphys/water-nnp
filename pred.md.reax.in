@@ -7,12 +7,13 @@ units       real
 atom_style	full
 
 read_data lmp/restart.data
+replicate 2 2 2
 #replicate 	50 50 1
 
 group Hydrogen 	type 1
-group Oxygen 	type 2 
+group Oxygen 	type 2
 group water 	union Hydrogen Oxygen
- 
+
 ##############################
 
 pair_style      reax/c NULL
@@ -34,7 +35,7 @@ dump            1 all atom 100 results/dump-reax.lammpstrj
 #dump           1 all xyz 100 results/dump-reax.xyz
 #dump_modify    1 sort id element H O
 
-############################## 
+##############################
 
 variable T      equal 300
 variable P      equal 1.0
@@ -56,5 +57,3 @@ unfix			rlx
 # ---
 
 #write_data      lmp/restart.data
-
-

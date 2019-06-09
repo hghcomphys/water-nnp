@@ -7,13 +7,13 @@
 ###############################################################################
 clear
 # Configuration files
-variable cfgFile         string "lmp/restart.data"
+variable cfgFile         string "lmp/restart.1000.data"
 # Timesteps
 variable numSteps        equal  10000
 variable dt              equal  0.5
 # NN
-variable nnpCutoff       equal  8.5 #6.36
-variable nnpDir          string "nnp-trained"
+variable nnpCutoff       equal  6.36
+variable nnpDir          string "nnp/"
 # Masses
 variable mass_H          equal  1.00794
 variable mass_O          equal  15.9994
@@ -24,8 +24,8 @@ variable mass_O          equal  15.9994
 units real   # NOT METAL!!!
 boundary p p p
 atom_style full
-read_data ${cfgFile}
-replicate 2 2 2
+read_restart ${cfgFile}
+#replicate 2 2 2
 mass 1 ${mass_H}
 mass 2 ${mass_O}
 timestep ${dt}
@@ -54,11 +54,11 @@ thermo_style    custom step temp pe ke etotal press v_dens
 
 variable T      equal 300
 variable P      equal 1.0
-#velocity   	all create 1 98445 dist gaussian mom yes rot yes
+velocity   	all create 300 98445 dist gaussian mom yes rot yes
 
 # ---
 
-fix        	rlx all nvt temp $T $T 10 #iso $P $P 1000
+fix        	rlx all npt temp $T $T 10 iso $P $P 1000
 #fix             rlx all nve
 #fix             1 all temp/rescale 1 1.0 1.5 0.05 1.0
 run 			10000
@@ -67,7 +67,7 @@ unfix           rlx
 
 # ---
 
-fix        		rlx all npt temp $T $T 100 iso $P $P 1000
+fix        		rlx all nvt temp $T $T 100 #iso $P $P 1000
 #run 			${numSteps}
 unfix           rlx
 

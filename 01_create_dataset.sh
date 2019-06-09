@@ -5,8 +5,8 @@ REF="reax"
 echo "Generat initial dataset..."
 rm -f lmp/*.out lmp/*.data
 
-lmp_serial < md.${REF}.in #> lmp/md.${REF}.out
-#mpirun -np 4 lmp_mpi < md.${REF}.in #> lmp/md.${REF}.out
+# lmp_serial < md.${REF}.in #> lmp/md.${REF}.out
+mpirun -np 4 lmp_mpi < md.${REF}.in #> lmp/md.${REF}.out
 
 cp lmp/${REF}.data lmp/${REF}.back.data
 cp lmp/restart.data lmp/restart.back.data

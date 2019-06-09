@@ -6,13 +6,14 @@ boundary	p p p
 units       real
 atom_style	full
 
-read_data lmp/restart.data
+#read_data lmp/restart.data
+read_restart lmp/restart.data
 #replicate 	50 50 1
 
 group Hydrogen 	type 1
-group Oxygen 	type 2 
+group Oxygen 	type 2
 group water 	union Hydrogen Oxygen
- 
+
 ##############################
 
 pair_style      reax/c NULL
@@ -33,7 +34,7 @@ thermo_style    custom step temp etotal pe lx ly ly v_dens
 dump           1 all xyz 1000 lmp/dump.xyz
 dump_modify    1 sort id element H O
 
-############################## 
+##############################
 
 compute         e0 all pe/atom
 
@@ -43,7 +44,7 @@ variable a loop 500
 label loop
 
 # read atomic position and charge from input dump file
-variable f equal 1*$a  # specify timestep for the snapshot
+variable f equal 10*$a  # specify timestep for the snapshot
 read_dump lmp/nnp.data $f x y z q box yes replace yes #type q c_e0 fx fy fz  # dump file must include atom id
 
 dump            dataset all custom 1 lmp/reax.data id x y z type q c_e0 fx fy fz
@@ -56,7 +57,3 @@ undump dataset
 
 next a
 jump rerun.reax.in loop
-
-
-
-
