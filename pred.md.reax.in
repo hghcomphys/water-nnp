@@ -6,7 +6,7 @@ boundary	p p p
 units       real
 atom_style	full
 
-read_data lmp/restart.data
+read_restart lmp/restart.data
 replicate 2 2 2
 #replicate 	50 50 1
 
@@ -29,7 +29,7 @@ variable  dens equal (mass(all)/vol*1.66054) # gr/cm3
 
 timestep 		0.5
 thermo          10
-thermo_style    custom step temp etotal pe lx ly ly v_dens
+thermo_style    custom step temp etotal lx ly ly v_dens
 
 dump            1 all atom 100 results/dump-reax.lammpstrj
 #dump           1 all xyz 100 results/dump-reax.xyz
@@ -44,14 +44,25 @@ variable P      equal 1.0
 # ---
 
 fix        		rlx all nvt temp $T $T 100 #iso $P $P 1000
-run 			10000
+run 			100
 unfix           rlx
 
+# =================== DIFFUSION
+compute         msd all msd com yes
+fix             msd_vec1 all vector 10 c_msd[1]
+variable        Dx equal slope(f_msd_vec1)/(10*dt)/2*1.0E4  #cm2/s (*1E-5)
+fix             msd_vec2 all vector 10 c_msd[2]
+variable        Dy equal slope(f_msd_vec2)/(10*dt)/2*1.0E4  #cm2/s (*1E-5)
+fix             msd_vec3 all vector 10 c_msd[3]
+variable        Dz equal slope(f_msd_vec3)/(10*dt)/2*1.0E4  #cm2/s (*1E-5)
+variable		    D equal (v_Dx+v_Dy+v_Dz)/3
+# ===================
 
-# ---
+thermo 10
+thermo_style    custom step temp etotal press v_dens v_D c_msd[4]
 
-fix        		rlx all npt temp $T $T 100 iso $P $P 1000
-#run 			10000
+fix        		rlx all nvt temp $T $T 100 #iso $P $P 1000
+run 			50000
 unfix			rlx
 
 # ---
