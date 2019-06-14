@@ -10,3 +10,7 @@ log.cite
 log.lammps
 *.out
 __*__
+DFT_DATA13/
+openmx/
+vasp/
+*CAR
