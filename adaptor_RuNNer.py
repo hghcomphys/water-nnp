@@ -1,6 +1,10 @@
 """A simple adaptor for RuNNer io file formats"""
 
 
+# ----------------------------------------------------------------------------
+# Define utility constants, functions, and classes
+# ----------------------------------------------------------------------------
+
 ANGSTROM_TO_BOHR = 1.8897261328
 EV_TO_HARTREE = 0.0367493254
 KCALMOL_TO_HARTREE = 0.001593602
@@ -9,6 +13,25 @@ KCALMOL_TO_HARTREE = 0.001593602
 def read_and_tokenize_line(in_file):
     return next(in_file).rstrip("/n").split()
 
+
+class UnitConversion:
+    """A class for unit conversion of RuNNer package."""
+
+    def __init__(self, energy_conversion=1.0, length_conversion=1.0):
+        self.energy = energy_conversion
+        self.length = length_conversion
+        self.charge = 1.0
+        self.force = energy_conversion / length_conversion
+
+    @property
+    def inverse(self):
+        """A method that applies inverse unit conversion."""
+        return UnitConversion(1.0/self.energy, 1.0/self.length)
+
+
+# ----------------------------------------------------------------------------
+# Setup classes for data
+# ----------------------------------------------------------------------------
 
 class AtomicData:
     """A class that holds atomic data such as positions, forces, total_energy, charges, etc."""
@@ -25,8 +48,8 @@ class AtomicData:
 class CollectiveData:
     """A class that holds collective quantities of simulated system such as total energy or charge."""
 
-    def __init__(self, box=(0.0, 0.0, 0.0), total_energy=0.0, total_charge=0.0):
-            self.box = box
+    def __init__(self, cell=(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0), total_energy=0.0, total_charge=0.0):
+            self.cell = cell
             self.total_energy = total_energy
             self.total_charge = total_charge
 
@@ -56,15 +79,15 @@ class Sample:
             tot += atom.charge
         return tot
 
-    def find_atoms_with_symbol(self, symbol):
-        sel_atoms = []
-        for atom in self.atoms:
-            if atom.symbol == symbol:
-                sel_atoms.append(atom)
-        return sel_atoms
-
-    def get_number_of_atoms_with_symbol(self, symbol):
-        return len(self.find_atoms_with_symbol(symbol))
+    # def find_atoms_with_symbol(self, symbol):
+    #     sel_atoms = []
+    #     for atom in self.atoms:
+    #         if atom.symbol == symbol:
+    #             sel_atoms.append(atom)
+    #     return sel_atoms
+    #
+    # def get_number_of_atoms_with_symbol(self, symbol):
+    #     return len(self.find_atoms_with_symbol(symbol))
 
 
 class DataSet:
@@ -82,20 +105,9 @@ class DataSet:
         return len(self.samples)
 
 
-class UnitConversion:
-    """A class for unit conversion of RuNNer package."""
-
-    def __init__(self, energy_conversion=1.0, length_conversion=1.0):
-        self.energy = energy_conversion
-        self.length = length_conversion
-        self.charge = 1.0
-        self.force = energy_conversion / length_conversion
-
-    @property
-    def inverse(self):
-        """A method that applies inverse unit conversion."""
-        return UnitConversion(1.0/self.energy, 1.0/self.length)
-
+# ----------------------------------------------------------------------------
+# Setup class for RuNNer adaptor
+# ----------------------------------------------------------------------------
 
 class RunnerAdaptor:
     """A bas class for conversion file formats of RuNNer package."""
@@ -106,56 +118,64 @@ class RunnerAdaptor:
     def clean(self):
         self.dataset = DataSet()
 
-    def write_runner(self, filename, uc=UnitConversion()):
+    def write_runner(self, filename):
         """Write RuNNer input data."""
 
         with open(filename, "w") as out_file:
             # loop over samples
             for sample in self.dataset.samples:
                 out_file.write("begin\n")
-                out_file.write("lattice %.10f %.10f %.10f\n" % (sample.collective.box[0]*uc.length, 0.0, 0.0))
-                out_file.write("lattice %.10f %.10f %.10f\n" % (0.0, sample.collective.box[1]*uc.length, 0.0))
-                out_file.write("lattice %.10f %.10f %.10f\n" % (0.0, 0.0, sample.collective.box[2]*uc.length))
+                cell = [c for c in sample.collective.cell]
+                out_file.write("lattice %.10f %.10f %.10f\n" % (cell[0], cell[1], cell[2]))
+                out_file.write("lattice %.10f %.10f %.10f\n" % (cell[3], cell[4], cell[5]))
+                out_file.write("lattice %.10f %.10f %.10f\n" % (cell[6], cell[7], cell[8]))
                 # loop over atoms in a sample
                 for atom in sample.atomic:
                     out_file.write("atom ")
-                    out_file.write("%15.10f %15.10f %15.10f " % tuple([pos*uc.length for pos in atom.position]))
-                    out_file.write("%s %15.10f %15.10f " % (atom.symbol, atom.charge*uc.charge, atom.energy*0.0))
-                    out_file.write("%15.10f %15.10f %15.10f\n" % tuple([frc*uc.force for frc in atom.force]))
-                out_file.write("energy %.10f\n" % (sample.collective.total_energy*uc.energy))
-                out_file.write("charge %.10f\n" % (sample.collective.total_charge*uc.charge))
+                    out_file.write("%15.10f %15.10f %15.10f " % tuple([pos for pos in atom.position]))
+                    out_file.write("%s %15.10f %15.10f " % (atom.symbol, atom.charge, atom.energy*0.0))
+                    out_file.write("%15.10f %15.10f %15.10f\n" % tuple([frc for frc in atom.force]))
+                out_file.write("energy %.10f\n" % (sample.collective.total_energy))
+                out_file.write("charge %.10f\n" % (sample.collective.total_charge))
                 out_file.write("end\n")
         return self
 
-    def read_nnforces(self, filename, uc=UnitConversion()):
-        """A method that reads predicted force for a given structure"""
-        nnforces = []
-        with open(filename, 'r') as infile:
-            for line in infile:
-                if "NNforces" in line:
-                    line = line.rstrip("/n").split()
-                    nnforces.append([float(_)*uc.force for _ in line[2:5]])
-        return nnforces
+    def read_runner(self):
+        pass
 
-    def read_nnenergy(self, filename, uc=UnitConversion()):
-        """A method that reads predicted force for a given structure"""
-        nnenergy = None
-        with open(filename, 'r') as infile:
-            for line in infile:
-                if "NNenergy" in line:
-                    line = line.rstrip("/n").split()
-                    nnenergy = float(line[1])*uc.energy
-                    break
-        return nnenergy
+    # def read_nnforces(self, filename, uc=UnitConversion()):
+    #     """A method that reads predicted force for a given structure"""
+    #     nnforces = []
+    #     with open(filename, 'r') as infile:
+    #         for line in infile:
+    #             if "NNforces" in line:
+    #                 line = line.rstrip("/n").split()
+    #                 nnforces.append([float(_)*uc.force for _ in line[2:5]])
+    #     return nnforces
+
+    # def read_nnenergy(self, filename, uc=UnitConversion()):
+    #     """A method that reads predicted force for a given structure"""
+    #     nnenergy = None
+    #     with open(filename, 'r') as infile:
+    #         for line in infile:
+    #             if "NNenergy" in line:
+    #                 line = line.rstrip("/n").split()
+    #                 nnenergy = float(line[1])*uc.energy
+    #                 break
+    #     return nnenergy
 
 
-class RuNNerAdaptorLAMMPS(RunnerAdaptor):
+# ----------------------------------------------------------------------------
+# Setup class for RuNNer adaptor to LAMMPS
+# ----------------------------------------------------------------------------
+
+class RuNNerAdaptorForLAMMPS(RunnerAdaptor):
     """An inherited class for conversion file formats between RuNNer and LAMMPS packages."""
 
     def __init__(self):
         RunnerAdaptor.__init__(self)
 
-    def read_lammps(self, filename, symbol_dict=None):
+    def read_lammps(self, filename, symbol_dict=None, uc=UnitConversion()):
 
         with open(filename, 'r') as in_file:
             # loop over lines in file
@@ -168,27 +188,31 @@ class RuNNerAdaptorLAMMPS(RunnerAdaptor):
                 line = next(in_file)
                 steps = int(line.split()[0])
                 # number of atoms
-                line = next(in_file)
+                next(in_file)
                 line = next(in_file)
                 number_of_atoms = int(line.split()[0])
-                # read box sizes, TODO: only orthogonal box
-                box = []
+                # read cell sizes
+                # TODO: read non-orthogonal cell in lammps
+                cell = []
                 line = next(in_file)
-                for n in range(3):
-                    line = next(in_file)
-                    line = line.rstrip("/n").split()
-                    box.append(float(line[1]) - float(line[0]))
+                for n in range(9):
+                    if n in [0, 4, 8]:
+                        line = next(in_file)
+                        line = line.rstrip("/n").split()
+                        cell.append((float(line[1]) - float(line[0]))*uc.length)
+                    else:
+                        cell.append(0.0)
 
                 # read atomic positions, symbol, charge, forces, energy, etc.
                 line = next(in_file)
                 for n in range(number_of_atoms):
                     line = next(in_file).rstrip("/n").split()
                     atomid = int(line[0])
-                    position = (float(line[1]), float(line[2]), float(line[3]))
+                    position = [float(pos)*uc.length for pos in line[1:4]]
                     symbol = line[4]
-                    charge = float(line[5])
-                    energy = float(line[6])
-                    force = (float(line[7]), float(line[8]), float(line[9]))
+                    charge = float(line[5])*uc.charge
+                    energy = float(line[6])*uc.energy
+                    force = [float(frc)*uc.force for frc in line[7:10]]
                     # convert number to an atomic symbol
                     if symbol_dict is not None:
                         symbol = symbol_dict[symbol]
@@ -197,7 +221,7 @@ class RuNNerAdaptorLAMMPS(RunnerAdaptor):
                     sample.atomic.append(AtomicData(atomid, position, symbol, charge, energy, force))
 
                 # set collective data
-                sample.collective = CollectiveData(tuple(box), sample.total_energy, sample.total_charge)
+                sample.collective = CollectiveData(cell, sample.total_energy, sample.total_charge)
 
                 # add sample to DataSet (list of samples)
                 self.dataset.append(sample)
@@ -209,13 +233,17 @@ class RuNNerAdaptorLAMMPS(RunnerAdaptor):
         pass
 
 
-class RuNNerAdaptorVASP(RunnerAdaptor):
+# ----------------------------------------------------------------------------
+# Setup class for RuNNer adaptor to VASP
+# ----------------------------------------------------------------------------
+
+class RuNNerAdaptorForVASP(RunnerAdaptor):
     """An inherited class for conversion file formats between RuNNer and VASP packages."""
 
     def __init__(self):
         RunnerAdaptor.__init__(self)
 
-    def write_POSCAR(self, filename, uc=UnitConversion()):
+    def write_poscar(self, filename, uc=UnitConversion()):
 
         # with open(filename, 'w') as out_file:
 
@@ -245,7 +273,7 @@ class RuNNerAdaptorVASP(RunnerAdaptor):
         # It is already implemented in N2P2 :D
         pass
 
-    def read_POSCAR(self, filename='POSCAR', symbol_list=None, uc=UnitConversion()):
+    def read_poscar(self, filename='POSCAR', symbol_list=None, uc=UnitConversion()):
 
         # create a instance of sample data
         sample = Sample()
@@ -261,25 +289,28 @@ class RuNNerAdaptorVASP(RunnerAdaptor):
                 # read scaling factor
                 line = read_and_tokenize_line(in_file)
                 scaling_factor = float(line[0])
-                # print (scaling_factor)
+                # print ("Scaling factor (POSCAR): ", scaling_factor)
 
-                # read box info
-                box = []
+                # read cell info
+                cell = []
                 for n in range(3):
                     line = read_and_tokenize_line(in_file)
-                    box.append(float(line[n])*scaling_factor*uc.length)
-                # print(box)
+                    for m in range(3):
+                        cell.append(float(line[m])*scaling_factor*uc.length)
+                # print(cell)
 
                 line = read_and_tokenize_line(in_file)
-                natoms_each_type = [int(_) for _ in line]
+                natoms_each_type = [int(l) for l in line]
                 # print (natoms_each_type)
 
                 # skip the line
-                next(in_file)
+                line = next(in_file)
+                if "select" in line.lower():
+                    line = next(in_file)
 
                 # check cartesian coordinates
-                line = next(in_file)
-                if "cart" not in line.lower():
+                if "car" not in line.lower():
+                    print (line)
                     raise AssertionError("Expected cartesian coordinates!")
 
                 # read atomic positions
@@ -291,18 +322,18 @@ class RuNNerAdaptorVASP(RunnerAdaptor):
                         atomid += 1
                         line = read_and_tokenize_line(in_file)
 
-                        position = [float(_)*uc.length for _ in line[0:3]]
+                        position = [float(pos)*scaling_factor*uc.length for pos in line[0:3]]
                         symbol = symbol_list[n]
 
                         # create atomic data and append it to sample
-                        sample.atomic.append(AtomicData(atomid, tuple(position), symbol, 0.0, 0.0, (0.0, 0.0, 0.0)))
+                        sample.atomic.append(AtomicData(atomid, position, symbol, 0.0, 0.0, (0.0, 0.0, 0.0)))
                         # (charge, energy, and force) * uc = 0
                         # print (symbol, position)
                 # Assuming it is the end of the POSCAR
                 break
 
             # set collective data
-            sample.collective = CollectiveData(tuple(box), 0, 0)  # (total charge & energy) * uc = 0
+            sample.collective = CollectiveData(cell, sample.total_energy, sample.total_charge)
 
             # add sample to DataSet (list of samples)
             self.dataset.append(sample)
@@ -310,7 +341,7 @@ class RuNNerAdaptorVASP(RunnerAdaptor):
         return self
 
 
-    def read_OUTCAR(self, filename='OUTCAR', uc=UnitConversion()):
+    def read_outcar(self, filename='OUTCAR', uc=UnitConversion()):
 
         with open(filename, 'r') as in_file:
             # loop over lines in file
@@ -318,34 +349,35 @@ class RuNNerAdaptorVASP(RunnerAdaptor):
             for line in in_file:
 
                 # read line
-                line = next(in_file)
+                # line = next(in_file)
+                # print(line)
 
                 # read the force section
                 if "POSITION" in line:
                     next(in_file)
                     for atom in self.dataset.samples[0].atomic:
                         line = read_and_tokenize_line(in_file)
-                        force = [float(_)*uc.force for _ in line[3:6]]
+                        force = [float(frc)*uc.force for frc in line[3:6]]
                         atom.force = tuple(force)
                         # print(line, atom.force)
 
-                if "total energy   ETOTAL" in line:
+                if "TOTEN" in line:
                     total_energy = float(line.rstrip("/n").split()[-2])
-                    print (total_energy)
-                    self.dataset.samples[0].collective.total_energy = total_energy
+                    # print (total_energy)
+                    self.dataset.samples[0].collective.total_energy = total_energy*uc.energy
 
         return self
 
     def read_vasp(self, symbol_list=None, uc=UnitConversion()):
-        self.read_POSCAR(symbol_list=symbol_list, uc=uc)
-        self.read_OUTCAR(uc=uc)
+        self.read_poscar(symbol_list=symbol_list, uc=uc)
+        self.read_outcar(uc=uc)
 
 
 if __name__ == "__main__":
 
-    vasp = RuNNerAdaptorVASP()
-    uc = UnitConversion(energy_conversion=0.1, length_conversion=1)
-    vasp.read_vasp(symbol_list=['O', 'H'], uc=uc)
-    vasp.write_runner(filename='inpu.data.vasp')
+    vasp = RuNNerAdaptorForVASP()
+    uc = UnitConversion(energy_conversion=EV_TO_HARTREE, length_conversion=ANGSTROM_TO_BOHR)
+    vasp.read_vasp(symbol_list=['H', 'O'], uc=uc)
+    vasp.write_runner(filename='input.vasp.data')
     # vasp.read_POSCAR(symbol_list=['O', 'H'], uc=uc)
     # vasp.read_OUTCAR(uc=uc)

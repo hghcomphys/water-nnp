@@ -1,7 +1,7 @@
 
 import sys
 
-from adaptor_RuNNer import UnitConversion, RuNNerAdaptorLAMMPS
+from adaptor_RuNNer import UnitConversion, RuNNerAdaptorForLAMMPS
 from adaptor_RuNNer import KCALMOL_TO_HARTREE, ANGSTROM_TO_BOHR
 
 # convert compatible units for RuNNer package
@@ -13,10 +13,10 @@ assert len(args) == 3, "Expected input and output file names!"
 lammps_filename = args[1]  # 'airebo.data'
 runner_filename = args[2]  # 'airebo.input.data'
 
-data = RuNNerAdaptorLAMMPS().read_lammps(lammps_filename, {'1': 'H', '2': 'O'})
-print ("number of atoms in each sample:", data.dataset.samples[0].number_of_atoms)
+data = RuNNerAdaptorForLAMMPS().read_lammps(lammps_filename, {'1': 'H', '2': 'O'}, uc)
 print ("number of samples:", data.dataset.number_of_samples)
-data.write_runner(runner_filename, uc)
+print ("number of atoms in each sample:", data.dataset.samples[0].number_of_atoms)
+data.write_runner(runner_filename)
 
 # Read predicted force
 # nnenergy = RunnerAdaptor().read_nnenergy("RuNNer/mode3.out")
