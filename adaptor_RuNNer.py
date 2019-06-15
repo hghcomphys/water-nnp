@@ -310,7 +310,7 @@ class RuNNerAdaptorForVASP(RunnerAdaptor):
 
                 # check cartesian coordinates
                 if "car" not in line.lower():
-                    print (line)
+                    # print (line)
                     raise AssertionError("Expected cartesian coordinates!")
 
                 # read atomic positions
@@ -371,13 +371,12 @@ class RuNNerAdaptorForVASP(RunnerAdaptor):
     def read_vasp(self, symbol_list=None, uc=UnitConversion()):
         self.read_poscar(symbol_list=symbol_list, uc=uc)
         self.read_outcar(uc=uc)
+        return self
 
 
-if __name__ == "__main__":
-
-    vasp = RuNNerAdaptorForVASP()
-    uc = UnitConversion(energy_conversion=EV_TO_HARTREE, length_conversion=ANGSTROM_TO_BOHR)
-    vasp.read_vasp(symbol_list=['H', 'O'], uc=uc)
-    vasp.write_runner(filename='input.vasp.data')
+# if __name__ == "__main__":
+#
+    # uc = UnitConversion(energy_conversion=EV_TO_HARTREE, length_conversion=ANGSTROM_TO_BOHR)
+    # RuNNerAdaptorForVASP().read_vasp(symbol_list=['H', 'O'], uc=uc).write_runner(filename='input.vasp.data')
     # vasp.read_POSCAR(symbol_list=['O', 'H'], uc=uc)
     # vasp.read_OUTCAR(uc=uc)
