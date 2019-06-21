@@ -14,3 +14,5 @@ DFT_DATA13/
 openmx/
 vasp/
 *CAR
+*.mpg
+submit*.sh
