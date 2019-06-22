@@ -16,3 +16,4 @@ vasp/
 *CAR
 *.mpg
 submit*.sh
+*.log
