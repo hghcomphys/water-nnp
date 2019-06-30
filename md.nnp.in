@@ -9,7 +9,7 @@ clear
 # Configuration files
 variable cfgFile         string "lmp/restart.data"
 # Timesteps
-variable numSteps        equal  5000
+variable numSteps        equal  10000
 variable dt              equal  0.5
 # NN
 variable nnpCutoff       equal  6.36
@@ -40,7 +40,7 @@ pair_coeff * * ${nnpCutoff}
 ###############################################################################
 # SETTING
 ###############################################################################
-dump            1 all xyz 1 lmp/dump.xyz
+dump            1 all xyz 10 lmp/dump.xyz
 dump_modify     1 sort id element H O
 
 variable  dens equal (mass(all)/vol*1.66054) # gr/cm3
