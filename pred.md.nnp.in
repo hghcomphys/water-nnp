@@ -7,13 +7,13 @@
 ###############################################################################
 clear
 # Configuration files
-variable cfgFile         string "lmp/restart.1000.data"
+variable cfgFile         string "lmp/restart.data"
 # Timesteps
-variable numSteps        equal  50000
+variable numSteps        equal  100000
 variable dt              equal  0.5
 # NN
 variable nnpCutoff       equal  6.36
-variable nnpDir          string "nnp/"
+variable nnpDir          string "nnp"
 # Masses
 variable mass_H          equal  1.00794
 variable mass_O          equal  15.9994
@@ -29,7 +29,7 @@ read_restart ${cfgFile}
 mass 1 ${mass_H}
 mass 2 ${mass_O}
 timestep ${dt}
-thermo 10
+thermo 50
 
 ###############################################################################
 # NN
@@ -44,7 +44,6 @@ dump           1 all atom 100 results/dump-nnp.lammpstrj
 dump           xyz all xyz 100 results/dump.xyz
 dump_modify    xyz sort id element H O
 
-
 variable  dens equal (mass(all)/vol*1.66054) # gr/cm3
 thermo_style    custom step temp etotal press lx ly lz v_dens
 
@@ -54,32 +53,14 @@ thermo_style    custom step temp etotal press lx ly lz v_dens
 
 variable T      equal 300
 variable P      equal 1.0
-velocity   	all create 300 98445 dist gaussian mom yes rot yes
+velocity   	    all create 300 98445 dist gaussian mom yes rot yes
 
 # ---
 
 fix        	rlx all npt temp $T $T 10 iso $P $P 1000
-run 			100
-unfix           rlx
-
-# =================== DIFFUSION
-compute         msd all msd com yes
-fix             msd_vec1 all vector 10 c_msd[1]
-variable        Dx equal slope(f_msd_vec1)/(10*dt)/2*1.0E4  #cm2/s (*1E-5)
-fix             msd_vec2 all vector 10 c_msd[2]
-variable        Dy equal slope(f_msd_vec2)/(10*dt)/2*1.0E4  #cm2/s (*1E-5)
-fix             msd_vec3 all vector 10 c_msd[3]
-variable        Dz equal slope(f_msd_vec3)/(10*dt)/2*1.0E4  #cm2/s (*1E-5)
-variable		    D equal (v_Dx+v_Dy+v_Dz)/3
-# ===================
-
-thermo 10
-thermo_style    custom step temp etotal press v_dens v_D c_msd[4]
-
-fix         rlx all nvt temp $T $T 100 #iso $P $P 1000
-run 			${numSteps}
+run 			  ${numSteps}
 unfix       rlx
 
 # ---
 
-#write_data      lmp/restart-nnp.data
+#write_data      lmp/restart.nnp.data

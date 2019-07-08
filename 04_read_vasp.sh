@@ -3,8 +3,9 @@
 REF="vasp"
 
 rm -f ${REF}/input.data
+echo removed ${REF}/input.data
 
-for n in $(seq 1 1 500)
+for n in $(seq 1 1 3000)
 do
   cp ${REF}/tmp/run$n/POSCAR .
   cp ${REF}/tmp/run$n/OUTCAR .
