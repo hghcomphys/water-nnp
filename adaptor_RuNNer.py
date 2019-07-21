@@ -1,6 +1,5 @@
 """A simple adaptor for RuNNer io file formats"""
 
-
 # ----------------------------------------------------------------------------
 # Define utility constants, functions, and classes
 # ----------------------------------------------------------------------------
@@ -8,7 +7,6 @@
 ANGSTROM_TO_BOHR = 1.8897261328
 EV_TO_HARTREE = 0.0367493254
 KCALMOL_TO_HARTREE = 0.001593602
-
 
 def read_and_tokenize_line(in_file):
     return next(in_file).rstrip("/n").split()
@@ -79,15 +77,15 @@ class Sample:
             tot += atom.charge
         return tot
 
-    # def find_atoms_with_symbol(self, symbol):
-    #     sel_atoms = []
-    #     for atom in self.atoms:
-    #         if atom.symbol == symbol:
-    #             sel_atoms.append(atom)
-    #     return sel_atoms
-    #
-    # def get_number_of_atoms_with_symbol(self, symbol):
-    #     return len(self.find_atoms_with_symbol(symbol))
+    def get_atoms_for_symbol(self, symbol):
+        sel_atoms = []
+        for atom in self.atomic:
+            if atom.symbol == symbol:
+                sel_atoms.append(atom)
+        return sel_atoms
+
+    def get_number_of_atoms_for_symbol(self, symbol):
+        return len(self.get_atoms_for_symbol(symbol))
 
 
 class DataSet:
@@ -299,35 +297,47 @@ class RuNNerAdaptorForVASP(RunnerAdaptor):
     def __init__(self):
         RunnerAdaptor.__init__(self)
 
-    def write_poscar(self, filename, uc=UnitConversion()):
+    def write_poscar(self, filename='POSCAR', symbol_list=None, uc=UnitConversion(), scaling_factor=1.0,
+                     number_of_strucure=None, seed=1234):
 
-        # with open(filename, 'w') as out_file:
+        if (number_of_strucure is None):
+            samples = self.dataset.samples
+        else:
+            assert number_of_strucure <= self.dataset.number_of_samples, "Number of structures exceeds number of samples"
+            import random
+            random.seed(seed)
+            samples = random.sample(self.dataset.samples, int(number_of_strucure))
 
-            # H2O
-            # 0.52918   ! scaling parameter
-            #  15 0 0
-            #  0 15 0
-            #  0 0 15
-            # 2 1
-            # select
-            # cart
-            #       1.10    -1.43     0.00 T T F
-            #       1.10     1.43     0.00 T T F
-            #       0.00     0.00     0.00 F F F
+        index = 0
+        for sample in samples:
 
-            # for sample in self.dataset.samples:
-            #
-            #     out_file.write("H2O\n")
-            #     out_file.write("1.00  ! scaling factor\n")
-            #     out_file.write("%.10f %.10f %.10f\n" % (sample.collective.box[0] * uc.length, 0.0, 0.0))
-            #     out_file.write("%.10f %.10f %.10f\n" % (0.0, sample.collective.box[1] * uc.length, 0.0))
-            #     out_file.write("%.10f %.10f %.10f\n" % (0.0, 0.0, sample.collective.box[2] * uc.length))
-            #
-            #     for atom in sample.atomic:
-            #         out_file.write("%15.10f %15.10f %15.10f\n" % tuple([pos*uc.length for pos in atom.position]))
+            index += 1
+            with open(filename+"_%d" % index, 'w') as out_file:
 
-        # It is already implemented in N2P2 :D
-        pass
+                # comment
+                out_file.write(", ATOM=")
+                for symbol in symbol_list:
+                    out_file.write("%s " % symbol)
+                out_file.write("\n")
+
+                # write scaling factor
+                out_file.write("%15.10f\n" % scaling_factor)
+
+                # cell
+                for i in range(3):
+                    out_file.write("%15.10f %15.10f %15.10f\n" % tuple([c*uc.length for c in sample.collective.cell[3*i:3*(i+1)]]))
+
+                # number of atoms for each symbol
+                for symbol in symbol_list:
+                    out_file.write("%d " % sample.get_number_of_atoms_for_symbol(symbol))
+                out_file.write("\n")
+
+                # atom positions
+                out_file.write("Cartesian \n")
+                for symbol in symbol_list:
+                    for atom in sample.get_atoms_for_symbol(symbol):
+                        out_file.write("%15.10f %15.10f %15.10f\n" % tuple([f*uc.length for f in atom.position]))
+
 
     def read_poscar(self, filename='POSCAR', symbol_list=None, uc=UnitConversion()):
 
@@ -431,8 +441,10 @@ class RuNNerAdaptorForVASP(RunnerAdaptor):
 
 
 # if __name__ == "__main__":
-#     data = RunnerAdaptor().read_runner(filename="input.data").write_runner(filename="input.2.data")
+    # data = RunnerAdaptor().read_runner(filename="input.data").write_runner(filename="input.2.data")
     # uc = UnitConversion(energy_conversion=EV_TO_HARTREE, length_conversion=ANGSTROM_TO_BOHR)
     # RuNNerAdaptorForVASP().read_vasp(symbol_list=['H', 'O'], uc=uc).write_runner(filename='input.vasp.data')
     # vasp.read_POSCAR(symbol_list=['O', 'H'], uc=uc)
     # vasp.read_OUTCAR(uc=uc)
+    # uc = UnitConversion(energy_conversion=EV_TO_HARTREE, length_conversion=ANGSTROM_TO_BOHR)
+    # RuNNerAdaptorForVASP().read_runner("input.data").write_poscar(symbol_list=['H', 'O'], uc=uc.inverse, number_of_strucure=1)
