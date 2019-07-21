@@ -140,8 +140,60 @@ class RunnerAdaptor:
                 out_file.write("end\n")
         return self
 
-    def read_runner(self):
-        pass
+    def read_runner(self, filename):
+        """read RuNNer atomic structure file."""
+
+        read_file = True
+        in_file = open(filename, "r")
+
+        while in_file.readline():
+
+            sample = Sample()
+            cell = []
+            atomid = 0
+            total_energy = 0.0
+            total_charge = 0.0
+
+            while True:
+
+                line = read_and_tokenize_line(in_file)
+
+                # if "begin" in line[0]:
+                #     continue
+
+                # if "comment" in line[0]:
+                #     continue
+
+                if "lattice" in line[0]:
+                    for c in line[1:4]:
+                        cell.append(float(c))
+
+                if "atom" in line[0]:
+                    atomid += 1
+                    position = [float(pos) for pos in line[1:4]]
+                    symbol = line[4]
+                    charge = float(line[5])
+                    energy = float(line[6])
+                    force = [float(frc) for frc in line[7:10]]
+                    sample.atomic.append(AtomicData(atomid, position, symbol, charge, energy, force))
+
+                if "energy" in line[0]:
+                    total_energy = float(line[1])
+
+                if "charge" in line[0]:
+                    total_charge = float(line[1])
+
+                if "end" in line[0]:
+                    break
+
+            # set collective data
+            assert len(cell) == 9, "Unexpected number of cell dimension (%d)" % len(cell)
+            sample.collective = CollectiveData(cell, total_energy, total_charge)
+
+            # add sample to DataSet (list of samples)
+            self.dataset.append(sample)
+
+        return self
 
     # def read_nnforces(self, filename, uc=UnitConversion()):
     #     """A method that reads predicted force for a given structure"""
@@ -375,7 +427,7 @@ class RuNNerAdaptorForVASP(RunnerAdaptor):
 
 
 # if __name__ == "__main__":
-#
+#     data = RunnerAdaptor().read_runner(filename="input.data").write_runner(filename="input.2.data")
     # uc = UnitConversion(energy_conversion=EV_TO_HARTREE, length_conversion=ANGSTROM_TO_BOHR)
     # RuNNerAdaptorForVASP().read_vasp(symbol_list=['H', 'O'], uc=uc).write_runner(filename='input.vasp.data')
     # vasp.read_POSCAR(symbol_list=['O', 'H'], uc=uc)
