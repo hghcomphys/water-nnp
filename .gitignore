@@ -17,3 +17,5 @@ vasp/
 *.mpg
 submit*.sh
 *.log
+archive_*/
+
