@@ -78,15 +78,15 @@ restart         0
 # ================= NPT
 
 fix             rlx all npt temp $T $T 100 iso $P $P 1000
-run 			10000
+#run 			10000
 unfix			rlx
 
 # ================== Out range ensemble
 
-variable        e equal 0.00016666 
+variable        e equal -0.00001
 fix             dfm all deform 1 x erate $e y erate $e z erate $e remap v
 fix             rlx all nvt temp 300 300 100
-run 			15000
+run 			5000
 unfix			rlx
 
 # ---
