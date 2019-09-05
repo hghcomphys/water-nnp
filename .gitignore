@@ -1,6 +1,6 @@
 results/
-nnp/
-lmp/
+nnp/n2p2_*
+#lmp/
 nnp-trained/
 #input.nn
 log.cite
@@ -11,11 +11,17 @@ log.lammps
 *.out
 __*__
 DFT_DATA13/
-openmx/
-vasp/
+#openmx/
+vasp/train/
+vasp/h2o/
+vasp/tmp
+vasp/input.data
 *CAR
 *.mpg
 submit*.sh
 *.log
 archive_*/
+*.zip
+stdout
+stderr
 
