@@ -1,0 +1,14 @@
+PREC    = Accurate  ! standard precision 
+ENMAX   = 700       ! cutoff should be set manually
+GGA     = RP
+ALGO	= Fast	
+ISMEAR  = 0
+SIGMA   = 0.1
+IBRION  = 1         ! use DIIS algorithm to converge
+NSW     = 1         ! ionic steps
+!NFREE   = 2         ! 2 independent degrees of freedom
+!EDIFF   = 1E-8
+!ISYM	= 0
+LWAVE	= F		
+LCHARG	= F
+IVDW    = 11        ! DFT-D3 method	(Grimme)
