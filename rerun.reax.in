@@ -17,7 +17,7 @@ group water 	union Hydrogen Oxygen
 ##############################
 
 pair_style      reax/c NULL
-pair_coeff      * * ffield.reax_2018 H O
+pair_coeff      * * lmp/field.reax_2018 H O
 fix             qeq all qeq/reax 1 0.0 10.0 1e-6 reax/c
 
 #neighbor 2.0 nsq

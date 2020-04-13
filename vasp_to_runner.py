@@ -15,4 +15,3 @@ filename = args[1]  # 'airebo.data'
 uc = UnitConversion(energy_conversion=EV_TO_HARTREE, length_conversion=ANGSTROM_TO_BOHR)
 data = RuNNerAdaptorForVASP().read_vasp(symbol_list=['H', 'O'], uc=uc).write_runner(filename=filename)
 # print("number of atoms in each sample:", data.dataset.samples[0].number_of_atoms)
-

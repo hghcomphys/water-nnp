@@ -17,7 +17,7 @@ group water 	union Hydrogen Oxygen
 ##############################
 
 pair_style      reax/c NULL
-pair_coeff      * * ffield.reax_2018 H O
+pair_coeff      * * lmp/ffield.reax_2018 H O
 fix             qeq all qeq/reax 1 0.0 10.0 1e-6 reax/c
 
 #neighbor       2.0 nsq
@@ -58,6 +58,7 @@ velocity   		all create 300 98445 dist gaussian mom yes rot yes
 
 compute         e0 all pe/atom
 dump            dataset all custom 50 lmp/reax.data id x y z type q c_e0 fx fy fz
+#dump            dataset all custom 50 lmp/reax.data.openmx id type x y z #q c_e0 fx fy fz
 dump_modify     dataset sort id append yes
 reset_timestep  0
 

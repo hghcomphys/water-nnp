@@ -34,14 +34,14 @@ thermo 50
 ###############################################################################
 # NN
 ###############################################################################
-pair_style nnp dir ${nnpDir} showew no showewsum 0 resetew yes maxew 5000 cflength 1.8897261328 cfenergy 0.0015936 # kcal/mol -> Hartree !!!
+pair_style nnp dir ${nnpDir} showew yes showewsum 0 resetew yes maxew 5000 cflength 1.8897261328 cfenergy 0.0015936 # kcal/mol -> Hartree !!!
 pair_coeff * * ${nnpCutoff}
 
 ###############################################################################
 # SETTING
 ###############################################################################
-dump           1 all atom 100 results/dump-nnp.lammpstrj
-dump           xyz all xyz 100 results/dump.xyz
+dump           1 all atom 100 pred/dump-nnp.lammpstrj
+dump           xyz all xyz 100 pred/dump.xyz
 dump_modify    xyz sort id element H O
 
 variable  dens equal (mass(all)/vol*1.66054) # gr/cm3
